@@ -1,1 +1,0 @@
-# catalogo-tintas-sucursal-2
