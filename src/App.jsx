@@ -661,7 +661,7 @@ export default function App() {
                 <h1 className="text-lg md:text-3xl lg:text-4xl font-bold text-white mb-0 md:mb-2 truncate">
                   Tintas Y Tecnología SMT
                 </h1>
-                <p className="text-xs md:text-base text-white/90 hidden sm:block">Catálogo de Productos - Najash</p>
+                <p className="text-xs md:text-base text-white/90 hidden sm:block">Catálogo de Productos - Nayleth</p>
               </div>
             </div>
             <button 
