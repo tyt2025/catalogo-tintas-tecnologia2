@@ -15,8 +15,6 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [cart, setCart] = useState([]);
   const [showCart, setShowCart] = useState(false);
-  const [showCheckout, setShowCheckout] = useState(false);
-  const [clientData, setClientData] = useState({ nombre: '' });
   const [selectedProduct, setSelectedProduct] = useState(null);
 
   const translateCategory = (category) => {
@@ -368,10 +366,7 @@ export default function App() {
     ctx.fillText('COTIZACIÓN', canvasWidth / 2, 80);
     
     ctx.font = '32px Arial';
-    ctx.fillText('Tintas Y Tecnología SMT', canvasWidth / 2, 130);
-    
-    ctx.font = '24px Arial';
-    ctx.fillText(`Cliente: ${clientData.nombre}`, canvasWidth / 2, 170);
+    ctx.fillText('Tintas Y Tecnología SMT', canvasWidth / 2, 140);
 
     // Línea separadora
     ctx.strokeStyle = '#cccccc';
@@ -508,7 +503,7 @@ export default function App() {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `cotizacion_${clientData.nombre.replace(/\s+/g, '_')}_${Date.now()}.jpg`;
+        a.download = `cotizacion_${Date.now()}.jpg`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -519,10 +514,6 @@ export default function App() {
   };
 
   const handleCheckout = async () => {
-    if (!clientData.nombre.trim()) {
-      alert('Por favor completa tu nombre');
-      return;
-    }
     if (cart.length === 0) {
       alert('El carrito está vacío');
       return;
@@ -538,17 +529,26 @@ export default function App() {
       ).join('\n\n');
       
       // Mensaje detallado para WhatsApp
-      const message = `🛒 *Nueva Solicitud de Cotización*\n\n👤 *Cliente:* ${clientData.nombre}\n\n📦 *Productos a Cotizar:*\n\n${productList}\n\n📊 *Resumen:*\n• Total de productos: ${cart.length}\n• Total de unidades: ${cart.reduce((sum, item) => sum + item.cantidad, 0)}\n\n📄 _Se ha descargado un documento con imágenes de los productos. Puedes adjuntarlo para más detalles._\n\n¡Gracias por tu solicitud!`;
+      const message = `🛒 *Nueva Solicitud de Cotización*\n\n📦 *Productos a Cotizar:*\n\n${productList}\n\n📊 *Resumen:*\n• Total de productos: ${cart.length}\n• Total de unidades: ${cart.reduce((sum, item) => sum + item.cantidad, 0)}\n\n📄 _Se ha descargado un documento con imágenes de los productos. Puedes adjuntarlo para más detalles._\n\n¡Gracias por tu solicitud!`;
       
-      // Abrir WhatsApp
-      window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');
+      // Crear enlace de WhatsApp compatible con móviles y escritorio
+      const whatsappUrl = `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(message)}`;
+      
+      // Detectar si es dispositivo móvil
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      
+      if (isMobile) {
+        // En móviles, usar window.location.href para abrir la app directamente
+        window.location.href = whatsappUrl;
+      } else {
+        // En escritorio, usar window.open
+        window.open(whatsappUrl, '_blank');
+      }
 
       alert('✅ ¡Cotización lista!\n\n📥 Se descargó el JPG con imágenes\n📱 Se abrió WhatsApp con los detalles\n\n💡 Puedes adjuntar el JPG manualmente en WhatsApp si lo deseas.');
       
       setCart([]);
       setShowCart(false);
-      setShowCheckout(false);
-      setClientData({ nombre: '' });
     } catch (error) {
       console.error('Error:', error);
       alert('Error al generar la cotización. Por favor intenta de nuevo.');
@@ -628,7 +628,7 @@ export default function App() {
     ctx.fillRect(0, canvas.height - 100, canvas.width, 100);
     ctx.fillStyle = '#ffffff';
     ctx.font = '20px Arial';
-    ctx.fillText('WhatsApp: +57 312 240 5144', 50, canvas.height - 50);
+    ctx.fillText('WhatsApp: +57 310 260 5693', 50, canvas.height - 50);
 
     canvas.toBlob((blob) => {
       const url = URL.createObjectURL(blob);
@@ -716,7 +716,7 @@ export default function App() {
                 </div>
               )}
               {cart.length > 0 && (
-                <button onClick={() => setShowCheckout(true)} className="w-full mt-4 md:mt-6 bg-[#ff0000] hover:bg-[#cc0000] text-white font-semibold py-2.5 md:py-3 rounded-lg text-sm md:text-base">
+                <button onClick={handleCheckout} className="w-full mt-4 md:mt-6 bg-[#ff0000] hover:bg-[#cc0000] text-white font-semibold py-2.5 md:py-3 rounded-lg text-sm md:text-base">
                   Solicitar Cotización
                 </button>
               )}
@@ -725,34 +725,6 @@ export default function App() {
         </div>
       )}
 
-      {showCheckout && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-3 md:p-4">
-          <div className="bg-white rounded-xl md:rounded-2xl max-w-lg w-full">
-            <div className="p-4 md:p-6 border-b flex justify-between items-center">
-              <h2 className="text-lg md:text-2xl font-bold">Datos de Contacto</h2>
-              <button onClick={() => setShowCheckout(false)} className="text-gray-500 hover:text-gray-700">
-                <X className="w-5 h-5 md:w-6 md:h-6" />
-              </button>
-            </div>
-            <div className="p-4 md:p-6 space-y-3 md:space-y-4">
-              <input 
-                type="text" 
-                placeholder="Nombre *" 
-                value={clientData.nombre} 
-                onChange={(e) => setClientData({nombre: e.target.value})} 
-                className="w-full px-3 md:px-4 py-2.5 md:py-3 border rounded-lg text-sm md:text-base" 
-                required 
-              />
-              <button 
-                onClick={handleCheckout} 
-                className="w-full bg-[#ff0000] hover:bg-[#cc0000] text-white font-semibold py-2.5 md:py-3 rounded-lg text-sm md:text-base"
-              >
-                Enviar Solicitud por WhatsApp
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {selectedProduct && (
         <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-3 md:p-4 overflow-y-auto">
